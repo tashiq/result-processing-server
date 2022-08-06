@@ -18,11 +18,19 @@ async function run() {
         const notificationCollections = database.collection('notifications')
         app.post('/users', async (req, res) => {
             const doc = req.body;
-            // const result = await userCollection.insertOne(doc);
-            // console.log("result");
-            // res.send(result.acknowledged);
-            console.log(doc);
+            const result = await userCollection.insertOne(doc);
+            // console.log(result);
+            res.send(result.acknowledged);
+            // console.log(doc);
         });
+
+        app.get('/users', async (req, res) => {
+            const cursor = userCollection.find({}, { email: 1, _id: 0 });
+            // console.log(cursor);
+            const result = await cursor.toArray();
+            console.log(result);
+            res.send(result);
+        })
         app.get('/users/:email', async (req, res) => {
             const email = req.params.email;
             const query = {
@@ -106,6 +114,17 @@ async function run() {
                     }
                 })
             res.send(result)
+        })
+        app.post('/notifications', async (req, res) => {
+            const body = req.body;
+            const documents = body.emailList.map(email => {
+                return {
+                    email,
+                    message: req.body.message,
+                    read: false
+                }
+            })
+            const result = await notificationCollections.insertMany(documents);
         })
     }
     finally {
